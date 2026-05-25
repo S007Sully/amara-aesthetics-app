@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amara AI — Social Media Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal: #2D8B85;
+  --teal-light: #4AADA7;
+  --teal-pale: #E8F5F4;
+  --teal-mid: #C2E5E3;
+  --cream: #FDFAF6;
+  --dark: #1A2E2D;
+  --mid: #4A6362;
+  --soft: #8FA8A6;
+  --white: #FFFFFF;
+  --border: #D4E8E6;
+  --shadow: 0 4px 24px rgba(45,139,133,0.10);
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--dark);
+  min-height: 100vh;
+}
+
+/* ── APP SHELL ── */
+.app-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 60px rgba(45,139,133,0.08);
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: var(--white);
+  border-bottom: 1.5px solid var(--border);
+  padding: 16px 20px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo-wrap {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--teal-pale);
+  border: 1.5px solid var(--teal-mid);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.header-text h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--dark);
+  line-height: 1;
+}
+.header-text p {
+  font-size: 11px;
+  color: var(--soft);
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+}
+
+/* ── TAB NAV ── */
+.tab-nav {
+  display: flex;
+  background: var(--white);
+  border-bottom: 1.5px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  position: sticky;
+  top: 73px;
+  z-index: 99;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex: none;
+  padding: 11px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--soft);
+  background: transparent;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+.tab-btn:hover { color: var(--teal); }
+.tab-btn.active {
+  color: var(--teal);
+  border-bottom-color: var(--teal);
+  background: var(--teal-pale);
+}
+
+/* ── PANELS ── */
+.tab-panel { display: none; flex: 1; flex-direction: column; }
+.tab-panel.active { display: flex; }
+
+/* ── SHARED PANEL STYLES ── */
+.panel-inner {
+  padding: 20px 16px 48px;
+  flex: 1;
+  overflow-y: auto;
+}
+.panel-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+.panel-sub {
+  font-size: 12px;
+  color: var(--soft);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* ── QUICK BUTTONS ── */
+.quick-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--soft);
+  margin-bottom: 10px;
+}
+.quick-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.quick-btn {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 13px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.quick-btn:hover {
+  background: var(--teal);
+  color: var(--white);
+  border-color: var(--teal);
+  transform: translateY(-1px);
+}
+
+/* ── CHAT (TAB 1) ── */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 300px;
+  max-height: 420px;
+}
+.msg {
+  display: flex;
+  gap: 10px;
+  animation: msgIn 0.3s ease both;
+}
+@keyframes msgIn {
+  from { opacity:0; transform:translateY(8px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.msg.user { flex-direction: row-reverse; }
+.msg-avatar {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  background: var(--teal-pale);
+}
+.msg.user .msg-avatar { background: var(--teal); }
+.msg-bubble {
+  max-width: 78%;
+  padding: 11px 14px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.msg.ai .msg-bubble {
+  background: var(--teal-pale);
+  border: 1px solid var(--teal-mid);
+  color: var(--dark);
+  border-top-left-radius: 4px;
+}
+.msg.user .msg-bubble {
+  background: var(--teal);
+  color: var(--white);
+  border-top-right-radius: 4px;
+}
+.typing-dots {
+  display: flex; gap: 4px; align-items: center; padding: 4px 2px;
+}
+.typing-dots span {
+  width: 7px; height: 7px;
+  background: var(--teal);
+  border-radius: 50%;
+  animation: bounce 1.2s infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce {
+  0%,80%,100% { transform:translateY(0); opacity:0.4; }
+  40% { transform:translateY(-6px); opacity:1; }
+}
+.chat-input-row {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1.5px solid var(--border);
+  background: var(--white);
+}
+.chat-input {
+  flex: 1;
+  background: var(--teal-pale);
+  border: 1.5px solid var(--teal-mid);
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 13.5px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--dark);
+  resize: none;
+  outline: none;
+  transition: border 0.2s;
+  height: 48px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.chat-input:focus { border-color: var(--teal); }
+.send-btn {
+  width: 48px; height: 48px;
+  background: var(--teal);
+  color: var(--white);
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.send-btn:hover:not(:disabled) { background: var(--dark); }
+.send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── IMAGE STUDIO (TAB 2) ── */
+.tool-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+.tool-card:hover {
+  border-color: var(--teal);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(45,139,133,0.15);
+}
+.tool-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--teal-pale);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.tool-info h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dark);
+  margin-bottom: 2px;
+}
+.tool-info p {
+  font-size: 12px;
+  color: var(--soft);
+  line-height: 1.4;
+}
+.tool-arrow {
+  margin-left: auto;
+  color: var(--soft);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.prompt-recipe-card {
+  background: var(--teal-pale);
+  border: 1.5px solid var(--teal-mid);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.prompt-recipe-card:hover { background: var(--teal-mid); }
+.prompt-recipe-card h4 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--teal);
+  margin-bottom: 4px;
+}
+.prompt-recipe-card p {
+  font-size: 12px;
+  color: var(--mid);
+  line-height: 1.5;
+}
+.copy-chip {
+  display: inline-block;
+  background: var(--teal);
+  color: var(--white);
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 10px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* ── VIDEO EDITOR (TAB 3) ── */
+.reel-idea {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.reel-idea h4 {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--dark);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.reel-idea p {
+  font-size: 12.5px;
+  color: var(--mid);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+.copy-caption-btn {
+  background: var(--teal-pale);
+  border: 1.5px solid var(--teal-mid);
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+.copy-caption-btn:hover { background: var(--teal); color: var(--white); }
+.copy-caption-btn.copied { background: #2a7a3b; color: var(--white); border-color: #2a7a3b; }
+
+/* ── TIKTOK (TAB 4) ── */
+.input-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.input-card label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 8px;
+}
+.input-card textarea {
+  width: 100%;
+  background: var(--teal-pale);
+  border: 1.5px solid var(--teal-mid);
+  border-radius: var(--radius-sm);
+  padding: 11px 13px;
+  font-size: 13.5px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--dark);
+  resize: none;
+  outline: none;
+  height: 80px;
+  transition: border 0.2s;
+}
+.input-card textarea:focus { border-color: var(--teal); }
+.tone-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 6px;
+}
+.tone-pill {
+  background: var(--teal-pale);
+  border: 1.5px solid var(--teal-mid);
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 13px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.tone-pill.active, .tone-pill:hover {
+  background: var(--teal);
+  color: var(--white);
+  border-color: var(--teal);
+}
+.generate-btn {
+  width: 100%;
+  background: var(--teal);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  padding: 15px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.generate-btn:hover:not(:disabled) {
+  background: var(--dark);
+  transform: translateY(-1px);
+}
+.generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.loading-bar {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  text-align: center;
+}
+.loading-bar.visible { display: flex; }
+.loading-bar p { font-size: 12px; color: var(--soft); font-style: italic; }
+
+.output-wrapper { display: none; flex-direction: column; gap: 12px; }
+.output-wrapper.visible { display: flex; }
+.output-section {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.4s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.output-section:nth-child(2) { animation-delay:0.08s; }
+.output-section:nth-child(3) { animation-delay:0.16s; }
+.output-section:nth-child(4) { animation-delay:0.24s; }
+.output-section:nth-child(5) { animation-delay:0.32s; }
+.output-section:nth-child(6) { animation-delay:0.40s; }
+
+.sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  background: var(--teal-pale);
+  border-bottom: 1.5px solid var(--teal-mid);
+}
+.sec-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.copy-btn {
+  background: var(--teal);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 11px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.copy-btn:hover { background: var(--dark); }
+.copy-btn.copied { background: #2a7a3b; }
+.sec-body {
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--dark);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.scene-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.scene-table th {
+  background: var(--teal-pale);
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 7px 10px;
+  text-align: left;
+  border-bottom: 1.5px solid var(--teal-mid);
+}
+.scene-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--teal-pale);
+  color: var(--dark);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.scene-table tr:last-child td { border-bottom: none; }
+.time-chip {
+  background: var(--teal);
+  color: var(--white);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.hashtag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 12px 14px;
+}
+.hashtag-chip {
+  background: var(--teal-pale);
+  border: 1.5px solid var(--teal-mid);
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 11px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.hashtag-chip:hover { background: var(--teal); color: var(--white); }
+.reset-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--soft);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+.reset-btn:hover { border-color: var(--teal); color: var(--teal); }
+.error-box {
+  display: none;
+  background: #fff5f5;
+  border: 1.5px solid #fca5a5;
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 12.5px;
+  color: #b91c1c;
+  margin-bottom: 12px;
+}
+.error-box.visible { display: block; }
+
+/* ── SECTION DIVIDER ── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 14px;
+}
+.section-divider span {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--soft);
+  white-space: nowrap;
+}
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div class="logo-wrap">🌿</div>
+    <div class="header-text">
+      <h1>Amara AI</h1>
+      <p>Social Media Command Center</p>
+    </div>
+  </div>
+
+  <!-- TAB NAV -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('caption')">✍️ Captions</button>
+    <button class="tab-btn" onclick="switchTab('image')">🎨 Image Studio</button>
+    <button class="tab-btn" onclick="switchTab('video')">🎬 Video Editor</button>
+    <button class="tab-btn" onclick="switchTab('tiktok')">📱 TikTok AI</button>
+  </nav>
+
+  <!-- ════════════════════════════════════════
+       TAB 1 — CAPTION WRITER
+  ════════════════════════════════════════ -->
+  <div class="tab-panel active" id="panel-caption">
+    <div class="quick-grid" style="padding:14px 16px 0; margin-bottom:0;">
+      <button class="quick-btn" onclick="prefill('Write a caption for a HydraFacial promotion — luxurious results, fresh skin, perfect for a Monday booking push.')">✨ HydraFacial</button>
+      <button class="quick-btn" onclick="prefill('Write a Monday, Wednesday, Friday posting caption — motivating self-care reminder for my audience.')">📅 MWF Post</button>
+      <button class="quick-btn" onclick="prefill('Write a lash lift and tint caption — stunning eyes, low maintenance, natural beauty.')">👁 Lash Lift</button>
+      <button class="quick-btn" onclick="prefill('Write a relaxing massage caption — stress relief, tension, feel like yourself again.')">💆 Massage</button>
+      <button class="quick-btn" onclick="prefill('Write a combo treatment caption — highlight the value and results of a facial + lash combo package.')">💎 Combo Deal</button>
+      <button class="quick-btn" onclick="prefill('Write a client appreciation caption — warm, genuine, celebrating my amazing clients.')">💕 Client Love</button>
+      <button class="quick-btn" onclick="prefill('Write a behind the scenes caption — showing the real day-to-day at Amara Aesthetics.')">🔍 BTS</button>
+      <button class="quick-btn" onclick="prefill('Write a self-care Sunday caption — encouraging my audience to invest in themselves.')">🌿 Self-Care</button>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg ai">
+        <div class="msg-avatar">🌿</div>
+        <div class="msg-bubble">Hi! I'm your Amara AI caption writer — trained in Emily's voice. Tap a quick button or type what you need and I'll write it for you. 💕</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="user-input" placeholder="Tell me what to write…" rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 2 — IMAGE STUDIO
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-image">
+    <div class="panel-inner">
+      <h2 class="panel-title">Image Studio</h2>
+      <p class="panel-sub">AI image tools + Amara prompt recipes — tap to generate or copy.</p>
+
+      <div class="section-divider"><span>AI Image Tools</span></div>
+
+      <a href="https://www.canva.com/ai-image-generator/" target="_blank" class="tool-card">
+        <div class="tool-icon">🎨</div>
+        <div class="tool-info"><h3>Canva AI</h3><p>Generate images inside your Canva designs</p></div>
+        <div class="tool-arrow">›</div>
+      </a>
+      <a href="https://gemini.google.com/" target="_blank" class="tool-card">
+        <div class="tool-icon">✨</div>
+        <div class="tool-info"><h3>Google Gemini</h3><p>AI image generation + editing</p></div>
+        <div class="tool-arrow">›</div>
+      </a>
+      <a href="https://firefly.adobe.com/" target="_blank" class="tool-card">
+        <div class="tool-icon">🔥</div>
+        <div class="tool-info"><h3>Adobe Firefly</h3><p>Professional AI images, commercially safe</p></div>
+        <div class="tool-arrow">›</div>
+      </a>
+      <a href="https://aitestkitchen.withgoogle.com/tools/image-fx" target="_blank" class="tool-card">
+        <div class="tool-icon">🖼</div>
+        <div class="tool-info"><h3>ImageFX by Google</h3><p>Free, high-quality AI image generation</p></div>
+        <div class="tool-arrow">›</div>
+      </a>
+
+      <div class="section-divider"><span>Amara Prompt Recipes</span></div>
+
+      <div class="prompt-recipe-card" onclick="copyPrompt(this, 'Soft natural light, luxury aesthetic spa room, white linen, green botanicals, a glowing skincare product placed elegantly on a marble surface. Clean, editorial, high-end.')">
+        <h4>✨ Luxury Spa Product Shot</h4>
+        <p>Soft natural light, luxury aesthetic spa room, white linen, green botanicals...</p>
+        <span class="copy-chip">Tap to Copy Prompt</span>
+      </div>
+      <div class="prompt-recipe-card" onclick="copyPrompt(this, 'Close-up of a woman with radiant glowing skin, natural makeup, soft bokeh background, warm golden light, high-end beauty editorial style, professional photography.')">
+        <h4>💆 Glowing Skin Portrait</h4>
+        <p>Close-up radiant skin, natural makeup, warm golden light, editorial beauty...</p>
+        <span class="copy-chip">Tap to Copy Prompt</span>
+      </div>
+      <div class="prompt-recipe-card" onclick="copyPrompt(this, 'Before and after skincare transformation split image. Left: dull tired skin. Right: luminous hydrated glowing skin. Clinical clean aesthetic, soft lighting.')">
+        <h4>🔄 Before & After Concept</h4>
+        <p>Before/after transformation, dull to luminous, clinical clean aesthetic...</p>
+        <span class="copy-chip">Tap to Copy Prompt</span>
+      </div>
+      <div class="prompt-recipe-card" onclick="copyPrompt(this, 'Serene spa treatment room, woman receiving a HydraFacial, glowing blue light, professional aesthetician, calming green and white color palette, luxury wellness.')">
+        <h4>🛁 HydraFacial Scene</h4>
+        <p>Spa treatment room, HydraFacial machine, calming green and white palette...</p>
+        <span class="copy-chip">Tap to Copy Prompt</span>
+      </div>
+      <div class="prompt-recipe-card" onclick="copyPrompt(this, 'Perfect lash lift and tint close-up photo, stunning natural lashes, bright eyes, light skin, clean aesthetic background, beauty editorial photography style.')">
+        <h4>👁 Lash Lift Closeup</h4>
+        <p>Perfect lash lift closeup, stunning natural lashes, beauty editorial...</p>
+        <span class="copy-chip">Tap to Copy Prompt</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 3 — VIDEO EDITOR
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-video">
+    <div class="panel-inner">
+      <h2 class="panel-title">Video Editor</h2>
+      <p class="panel-sub">Canva video tools + ready-to-post Reel ideas with captions.</p>
+
+      <div class="section-divider"><span>Video Creation Tools</span></div>
+
+      <a href="https://www.canva.com/video-editor/" target="_blank" class="tool-card">
+        <div class="tool-icon">🎬</div>
+        <div class="tool-info"><h3>Canva Video Editor</h3><p>Full video editing with templates and music</p></div>
+        <div class="tool-arrow">›</div>
+      </a>
+      <a href="https://www.canva.com/create/instagram-reels/" target="_blank" class="tool-card">
+        <div class="tool-icon">📱</div>
+        <div class="tool-info"><h3>Canva Reels Templates</h3><p>Ready-made Reel and TikTok templates</p></div>
+        <div class="tool-arrow">›</div>
+      </a>
+      <a href="https://www.capcut.com/" target="_blank" class="tool-card">
+        <div class="tool-icon">✂️</div>
+        <div class="tool-info"><h3>CapCut</h3><p>Auto-captions, voiceover, transitions, effects</p></div>
+        <div class="tool-arrow">›</div>
+      </a>
+      <a href="https://www.heygen.com/" target="_blank" class="tool-card">
+        <div class="tool-icon">🤖</div>
+        <div class="tool-info"><h3>HeyGen</h3><p>AI avatar videos — no camera needed</p></div>
+        <div class="tool-arrow">›</div>
+      </a>
+      <a href="https://runwayml.com/" target="_blank" class="tool-card">
+        <div class="tool-icon">🎞</div>
+        <div class="tool-info"><h3>Runway ML</h3><p>AI video generation and editing</p></div>
+        <div class="tool-arrow">›</div>
+      </a>
+
+      <div class="section-divider"><span>5 Reel Ideas + Captions</span></div>
+
+      <div class="reel-idea">
+        <h4>🌿 "What a HydraFacial actually feels like"</h4>
+        <p>B-roll of treatment room → closeup of glowing skin after. Soft music. Minimal text overlay.</p>
+        <button class="copy-caption-btn" onclick="copyCap(this, 'Your skin deserves this. ✨ HydraFacial at Amara Aesthetics — deep cleanse, hydration, and that glow you keep chasing. Book your appointment at the link in bio. 🌿 #hydrafacial #skincare #medspa #amaraaesthetics #boise')">Copy Caption</button>
+      </div>
+      <div class="reel-idea">
+        <h4>👁 "Lash lift transformation in 60 seconds"</h4>
+        <p>Before eyes → treatment time-lapse → stunning after reveal. Add trending audio.</p>
+        <button class="copy-caption-btn" onclick="copyCap(this, 'She came in with straight lashes and left like THIS. 👁✨ Lash lift + tint at Amara Aesthetics — no mascara needed. Results last 6–8 weeks. Book at the link in bio. #lashlift #lashliftandtint #boiseidaho #amaraaesthetics #beautytransformation')">Copy Caption</button>
+      </div>
+      <div class="reel-idea">
+        <h4>💆 "What my clients say after a massage"</h4>
+        <p>Text-on-screen with real client quotes. Soft spa background video. Calm music.</p>
+        <button class="copy-caption-btn" onclick="copyCap(this, '\"I forgot what it felt like to not be stressed.\" 💕 This is why we do what we do. Book your massage at Amara Aesthetics — link in bio. You deserve it. 🌿 #massage #selfcare #boiseidaho #amaraaesthetics #wellnessboise')">Copy Caption</button>
+      </div>
+      <div class="reel-idea">
+        <h4>💎 "The combo that changed her skin"</h4>
+        <p>Show the combo treatment steps — facial + lash. End on confident after look.</p>
+        <button class="copy-caption-btn" onclick="copyCap(this, 'Facial ✅ Lash lift ✅ Feeling like a completely new person ✅\n\nThe Amara Combo is everything. Book yours at the link in bio. 💎 #amaraaesthetics #combotreatment #medspa #boise #selfcareboise')">Copy Caption</button>
+      </div>
+      <div class="reel-idea">
+        <h4>🔍 "A day at Amara Aesthetics"</h4>
+        <p>Behind the scenes morning routine of setting up, welcoming clients, treatments.</p>
+        <button class="copy-caption-btn" onclick="copyCap(this, 'This is what a day at Amara looks like. ✨ We obsess over the details so you can just relax and glow. Book your next appointment at the link in bio. 🌿 #behindthescenes #amaraaesthetics #medspa #boiseidaho #aestheticstudio')">Copy Caption</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 4 — TIKTOK AI GENERATOR
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-tiktok">
+    <div class="panel-inner">
+      <h2 class="panel-title">TikTok Video Generator</h2>
+      <p class="panel-sub">Full script, scenes, caption & hashtags — trained in your brand voice.</p>
+
+      <div class="quick-label">Quick Topics</div>
+      <div class="quick-grid">
+        <button class="quick-btn" onclick="setTopic('HydraFacial promotion — results and why clients love it')">✨ HydraFacial</button>
+        <button class="quick-btn" onclick="setTopic('Lash lift and tint transformation — before and after')">👁 Lash Lift</button>
+        <button class="quick-btn" onclick="setTopic('Self-care Sunday — why you deserve to treat yourself')">🌿 Self-Care</button>
+        <button class="quick-btn" onclick="setTopic('Behind the scenes of a relaxing massage treatment')">💆 Massage BTS</button>
+        <button class="quick-btn" onclick="setTopic('Combo facial deal — everything included, show the results')">💎 Combo Deal</button>
+        <button class="quick-btn" onclick="setTopic('Real client review — reading a glowing testimonial on camera')">⭐ Client Review</button>
+        <button class="quick-btn" onclick="setTopic('Top 3 skincare mistakes and how to fix them')">🧴 Skincare Tips</button>
+        <button class="quick-btn" onclick="setTopic('Meet the team at Amara Aesthetics — who we are and why we love this')">👩‍💼 Meet the Team</button>
+      </div>
+
+      <div class="input-card">
+        <label>What's this video about?</label>
+        <textarea id="tiktok-topic" placeholder="Example: Show my HydraFacial and why clients keep coming back for it…"></textarea>
+      </div>
+
+      <div class="input-card">
+        <label>Video Tone</label>
+        <div class="tone-row" id="tone-row">
+          <button class="tone-pill active" onclick="setTone(this,'Educational — informative and trustworthy')">📚 Educational</button>
+          <button class="tone-pill" onclick="setTone(this,'Personal story — vulnerable and relatable')">💬 Story</button>
+          <button class="tone-pill" onclick="setTone(this,'Bold claim — attention-grabbing and confident')">🔥 Bold</button>
+          <button class="tone-pill" onclick="setTone(this,'Transformation — emotional before and after reveal')">✨ Transformation</button>
+          <button class="tone-pill" onclick="setTone(this,'Offer and promotion — urgency and value-focused')">🎁 Offer</button>
+        </div>
+      </div>
+
+      <div class="error-box" id="tt-error"></div>
+
+      <button class="generate-btn" id="tt-gen-btn" onclick="generateTikTok()">
+        <span>🎬</span> Generate My TikTok Package
+      </button>
+
+      <div class="loading-bar" id="tt-loading">
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+        <p>Amara AI is writing your TikTok video package…</p>
+      </div>
+
+      <div class="output-wrapper" id="tt-output">
+        <div class="output-section">
+          <div class="sec-head">
+            <div class="sec-label">⚡ Hook — First 3 Seconds</div>
+            <button class="copy-btn" onclick="copyOut('tt-hook',this)">Copy</button>
+          </div>
+          <div class="sec-body" id="tt-hook"></div>
+        </div>
+        <div class="output-section">
+          <div class="sec-head">
+            <div class="sec-label">🎙 Full Script</div>
+            <button class="copy-btn" onclick="copyOut('tt-script',this)">Copy</button>
+          </div>
+          <div class="sec-body" id="tt-script"></div>
+        </div>
+        <div class="output-section">
+          <div class="sec-head">
+            <div class="sec-label">🎬 Scene Breakdown</div>
+            <button class="copy-btn" onclick="copyOut('tt-scenes-raw',this)">Copy</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="scene-table">
+              <thead><tr><th>Time</th><th>Visual</th><th>Script</th><th>On-Screen</th></tr></thead>
+              <tbody id="tt-scenes-body"></tbody>
+            </table>
+          </div>
+          <div id="tt-scenes-raw" style="display:none"></div>
+        </div>
+        <div class="output-section">
+          <div class="sec-head">
+            <div class="sec-label">📝 Post Caption</div>
+            <button class="copy-btn" onclick="copyOut('tt-caption',this)">Copy</button>
+          </div>
+          <div class="sec-body" id="tt-caption"></div>
+        </div>
+        <div class="output-section">
+          <div class="sec-head">
+            <div class="sec-label"># Hashtags</div>
+            <button class="copy-btn" onclick="copyOut('tt-hash-raw',this)">Copy All</button>
+          </div>
+          <div class="hashtag-grid" id="tt-hash-grid"></div>
+          <div id="tt-hash-raw" style="display:none"></div>
+        </div>
+        <div class="output-section">
+          <div class="sec-head">
+            <div class="sec-label">🔄 3 Hook Alternatives</div>
+            <button class="copy-btn" onclick="copyOut('tt-alts',this)">Copy</button>
+          </div>
+          <div class="sec-body" id="tt-alts"></div>
+        </div>
+        <button class="reset-btn" onclick="resetTikTok()">↩ Generate Another Video</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end app-shell -->
+
+<script>
+/* ═══════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════ */
+function switchTab(id) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const ids = ['caption','image','video','tiktok'];
+    b.classList.toggle('active', ids[i] === id);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+/* ═══════════════════════════════
+   TAB 1 — CAPTION WRITER
+═══════════════════════════════ */
+const CAPTION_SYSTEM = `You are the Amara Aesthetics AI Caption Writer — trained in Emily's brand voice.
+
+Amara Aesthetics is a premium aesthetic wellness studio in Boise, Idaho. Services: HydraFacial, lash lift and tint, massage, combo treatments, skincare.
+
+Emily's voice: Warm, approachable, professional, feminine, encouraging. She speaks to women who want to look and feel beautiful without pretension. Never clinical. Never cold. Always genuine.
+
+Write Instagram and TikTok captions that:
+- Open with a scroll-stopping first line (no "Hey guys" or "Welcome back")
+- Feel like Emily wrote them personally
+- Include 1 clear CTA (book, link in bio, DM for details)
+- End with 5–8 relevant hashtags including #amaraaesthetics #boiseidaho
+- Are 80–150 words max
+- Have real warmth and personality
+
+Respond with ONLY the caption. No preamble. No explanation.`;
+
+let chatHistory = [];
+let chatLoading = false;
+
+function prefill(text) {
+  document.getElementById('user-input').value = text;
+  sendMessage();
+}
+
+async function sendMessage() {
+  if (chatLoading) return;
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  appendMsg('user', text);
+  input.value = '';
+  chatHistory.push({ role: 'user', content: text });
+  chatLoading = true;
+  document.getElementById('send-btn').disabled = true;
+
+  const typingId = appendTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: CAPTION_SYSTEM,
+        messages: chatHistory
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Something went wrong — try again! 💕';
+    removeTyping(typingId);
+    chatHistory.push({ role: 'assistant', content: reply });
+    appendMsg('ai', reply);
+  } catch {
+    removeTyping(typingId);
+    appendMsg('ai', 'Oops! Connection issue — please try again. 💕');
+    chatHistory.pop();
+  } finally {
+    chatLoading = false;
+    document.getElementById('send-btn').disabled = false;
+  }
+}
+
+function appendMsg(role, text) {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `
+    <div class="msg-avatar">${role === 'ai' ? '🌿' : '👤'}</div>
+    <div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>
+  `;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const wrap = document.getElementById('chat-messages');
+  const id = 'typing-' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  div.id = id;
+  div.innerHTML = `<div class="msg-avatar">🌿</div><div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return id;
+}
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+/* ═══════════════════════════════
+   TAB 2 — PROMPT COPY
+═══════════════════════════════ */
+function copyPrompt(card, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const chip = card.querySelector('.copy-chip');
+    chip.textContent = '✓ Copied!';
+    setTimeout(() => { chip.textContent = 'Tap to Copy Prompt'; }, 2000);
+  });
+}
+
+/* ═══════════════════════════════
+   TAB 3 — CAPTION COPY
+═══════════════════════════════ */
+function copyCap(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy Caption'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+/* ═══════════════════════════════
+   TAB 4 — TIKTOK GENERATOR
+═══════════════════════════════ */
+let selectedTone = 'Educational — informative and trustworthy';
+
+function setTopic(val) { document.getElementById('tiktok-topic').value = val; }
+
+function setTone(el, val) {
+  document.querySelectorAll('.tone-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  selectedTone = val;
+}
+
+function resetTikTok() {
+  document.getElementById('tt-output').classList.remove('visible');
+  document.getElementById('tiktok-topic').value = '';
+  document.getElementById('tt-error').classList.remove('visible');
+  document.getElementById('tt-gen-btn').disabled = false;
+}
+
+function copyOut(id, btn) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText((el.innerText || el.textContent).trim()).then(() => {
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+async function generateTikTok() {
+  const topic = document.getElementById('tiktok-topic').value.trim();
+  const err = document.getElementById('tt-error');
+  err.classList.remove('visible');
+
+  if (!topic) {
+    err.textContent = 'Please enter a topic or tap a quick button above.';
+    err.classList.add('visible');
+    return;
+  }
+
+  document.getElementById('tt-gen-btn').disabled = true;
+  document.getElementById('tt-output').classList.remove('visible');
+  document.getElementById('tt-loading').classList.add('visible');
+
+  const sys = `You are the Amara Aesthetics TikTok Video Generator — a custom branded AI tool built exclusively for Amara Aesthetics in Boise Idaho.
+
+Amara Aesthetics is a premium aesthetic wellness studio. Services: HydraFacial, lash lift and tint, massage, combo treatments, skincare.
+
+Brand voice: Warm, professional, confident, educational, approachable. Feels like a trusted friend who is also an expert. Never clinical. Never cold. Never overly salesy.
+
+Target audience: Women 25-50 in Boise Idaho who want to look and feel their best.
+
+Respond ONLY with a valid JSON object. No preamble, no markdown, no backticks. Raw JSON only.
+
+JSON structure:
+{
+  "hook": "exact first sentence spoken, max 15 words, bold scroll-stopping",
+  "script": "full word-for-word script 30-60 seconds. Use -- for pauses. Use CAPS for emphasis. Use [TEXT: text] for on-screen text cues. Use [B-ROLL: description] for visual cues.",
+  "scenes": [
+    {"time":"0:00-0:03","visual":"description","audio":"spoken words","onscreen":"text overlay"},
+    {"time":"0:04-0:12","visual":"description","audio":"spoken words","onscreen":"text overlay"},
+    {"time":"0:13-0:25","visual":"description","audio":"spoken words","onscreen":"text overlay"},
+    {"time":"0:26-0:40","visual":"description","audio":"spoken words","onscreen":"text overlay"},
+    {"time":"0:41-0:55","visual":"description","audio":"spoken words","onscreen":"text overlay"}
+  ],
+  "caption": "full TikTok caption, hook as first line, no hashtags inline, CTA at end, max 120 words",
+  "hashtags": ["#tag1","#tag2","#tag3","#tag4","#tag5","#tag6","#tag7","#tag8"],
+  "hookAlternatives": ["alt hook 1","alt hook 2","alt hook 3"]
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: sys,
+        messages: [{ role: 'user', content: `Topic: ${topic}\nTone: ${selectedTone}\nRespond ONLY with the JSON object.` }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || '';
+    const pkg = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    document.getElementById('tt-hook').textContent = pkg.hook;
+    document.getElementById('tt-script').textContent = pkg.script;
+
+    const tbody = document.getElementById('tt-scenes-body');
+    tbody.innerHTML = '';
+    let rawScenes = '';
+    pkg.scenes.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><span class="time-chip">${s.time}</span></td><td>${s.visual}</td><td>${s.audio}</td><td>${s.onscreen}</td>`;
+      tbody.appendChild(tr);
+      rawScenes += `[${s.time}] Visual: ${s.visual} | Audio: ${s.audio} | Text: ${s.onscreen}\n`;
+    });
+    document.getElementById('tt-scenes-raw').textContent = rawScenes;
+
+    document.getElementById('tt-caption').textContent = pkg.caption;
+
+    const grid = document.getElementById('tt-hash-grid');
+    grid.innerHTML = '';
+    pkg.hashtags.forEach(tag => {
+      const chip = document.createElement('div');
+      chip.className = 'hashtag-chip';
+      chip.textContent = tag;
+      chip.onclick = () => {
+        navigator.clipboard.writeText(tag);
+        chip.textContent = '✓';
+        setTimeout(() => { chip.textContent = tag; }, 1500);
+      };
+      grid.appendChild(chip);
+    });
+    document.getElementById('tt-hash-raw').textContent = pkg.hashtags.join(' ');
+    document.getElementById('tt-alts').textContent = pkg.hookAlternatives.map((h,i) => `${i+1}. ${h}`).join('\n\n');
+
+    document.getElementById('tt-loading').classList.remove('visible');
+    document.getElementById('tt-output').classList.add('visible');
+    document.getElementById('tt-gen-btn').disabled = false;
+
+  } catch(e) {
+    document.getElementById('tt-loading').classList.remove('visible');
+    err.textContent = 'Something went wrong — please try again. 💕';
+    err.classList.add('visible');
+    document.getElementById('tt-gen-btn').disabled = false;
+  }
+}
+</script>
+</body>
+</html>
