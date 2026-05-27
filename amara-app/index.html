@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Amara AI — Emily's Social Media Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blush: #E8C5B0; --rose: #C4896A; --clay: #8C5C44; --stone: #5C4033;
+    --cream: #FAF6F2; --warm-white: #FDF9F6; --ink: #2C1A12;
+    --soft: rgba(140,92,68,0.08); --sage: #5A6B45;
+    --sage-light: rgba(100,120,75,0.1); --sage-border: rgba(100,120,75,0.22);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  .amara-app { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; height: 100vh; width: 100vw; background: var(--cream); overflow: hidden; }
+  .amara-app header { background: rgba(253,249,246,0.97); border-bottom: 1px solid rgba(196,137,106,0.12); padding: 10px 18px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .avatar-logo { width: 68px; height: 68px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 4px 16px rgba(100,120,80,0.2); border: 2px solid rgba(130,150,100,0.25); background: var(--cream); display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--rose); font-style: italic; }
+  .header-center { flex: 1; text-align: center; min-width: 0; }
+  .header-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(15px, 3vw, 18px); font-weight: 500; color: var(--stone); letter-spacing: 0.04em; }
+  .header-sub { font-size: clamp(9px, 1.8vw, 10px); color: var(--rose); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
+  .header-social { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+  .social-link { font-family: 'Cormorant Garamond', serif; font-size: clamp(12px, 2.5vw, 14px); font-weight: 500; font-style: italic; color: var(--sage); text-decoration: none; padding: 6px 14px; border-radius: 100px; background: var(--sage-light); border: 1px solid var(--sage-border); display: inline-flex; align-items: center; gap: 5px; transition: all 0.22s; }
+  .social-link:hover { background: rgba(100,120,75,0.18); border-color: rgba(100,120,75,0.4); }
+  .tab-bar { background: var(--warm-white); border-bottom: 1px solid rgba(196,137,106,0.12); display: flex; flex-shrink: 0; overflow-x: auto; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn { flex: 1; padding: 11px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(44,26,18,0.42); border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+  .tab-btn.active { color: var(--rose); border-bottom-color: var(--rose); background: rgba(196,137,106,0.04); }
+  .tab-btn:hover:not(.active) { color: var(--stone); }
+  .panel { display: none; flex: 1; overflow: hidden; flex-direction: column; min-height: 0; }
+  .panel.active { display: flex; }
+  .quick-bar { background: var(--warm-white); border-bottom: 1px solid rgba(196,137,106,0.08); padding: 8px 14px; display: flex; gap: 7px; overflow-x: auto; flex-shrink: 0; }
+  .quick-bar::-webkit-scrollbar { display: none; }
+  .quick-btn { background: white; border: 1px solid rgba(196,137,106,0.2); border-radius: 100px; padding: 6px 13px; font-size: 11.5px; font-weight: 500; color: var(--stone); cursor: pointer; white-space: nowrap; flex-shrink: 0; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .quick-btn:hover { background: var(--blush); border-color: var(--rose); }
+  .chat-area { flex: 1; overflow-y: auto; padding: 18px 14px; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .msg { display: flex; gap: 9px; max-width: 720px; animation: fadeUp 0.28s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+  .msg.user { flex-direction: row-reverse; margin-left: auto; }
+  .msg-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--blush), var(--rose)); display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 14px; color: white; flex-shrink: 0; align-self: flex-end; }
+  .msg.user .msg-avatar { background: linear-gradient(135deg, var(--stone), var(--clay)); }
+  .bubble { background: white; border: 1px solid rgba(196,137,106,0.12); border-radius: 18px 18px 18px 4px; padding: 13px 16px; font-size: 14px; line-height: 1.65; box-shadow: 0 3px 16px -6px rgba(44,26,18,0.1); max-width: min(640px, calc(100vw - 80px)); word-break: break-word; }
+  .msg.user .bubble { background: linear-gradient(135deg, var(--stone), var(--clay)); color: white; border-radius: 18px 18px 4px 18px; border-color: transparent; }
+  .bubble p { margin-bottom: 7px; } .bubble p:last-child { margin-bottom: 0; }
+  .bubble strong { color: var(--rose); }
+  .msg.user .bubble strong { color: var(--blush); }
+  .bubble .hashtag-block { background: rgba(92,64,51,0.05); border-radius: 10px; padding: 9px 13px; margin-top: 9px; font-size: 12px; color: var(--rose); font-weight: 500; line-height: 1.7; }
+  .msg-label { font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(44,26,18,0.28); margin-bottom: 4px; padding-left: 4px; }
+  .msg.user .msg-label { text-align: right; padding-right: 4px; }
+  .typing-bubble { display: flex; gap: 5px; align-items: center; padding: 13px 16px; }
+  .typing-bubble span { width: 7px; height: 7px; background: var(--rose); border-radius: 50%; opacity: 0.4; animation: bounce 1.2s infinite; }
+  .typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:0.4;} 40%{transform:translateY(-6px);opacity:1;} }
+  .input-area { background: rgba(253,249,246,0.97); border-top: 1px solid rgba(196,137,106,0.15); padding: 12px 14px; flex-shrink: 0; }
+  .input-row { display: flex; gap: 9px; align-items: flex-end; background: white; border: 1.5px solid rgba(196,137,106,0.2); border-radius: 16px; padding: 10px 12px; transition: border-color 0.2s; }
+  .input-row:focus-within { border-color: var(--rose); }
+  #user-input { flex: 1; border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--ink); background: transparent; resize: none; min-height: 22px; max-height: 120px; line-height: 1.5; }
+  #user-input::placeholder { color: rgba(44,26,18,0.33); }
+  .send-btn { width: 38px; height: 38px; background: linear-gradient(135deg, var(--rose), var(--clay)); border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(196,137,106,0.4); transition: all 0.2s; }
+  .send-btn:hover { transform: scale(1.06); }
+  .send-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+  .input-hint { text-align: center; font-size: 10px; color: rgba(44,26,18,0.26); margin-top: 5px; }
+  .welcome { text-align: center; padding: 28px 16px; max-width: 540px; margin: 0 auto; }
+  .welcome-logo { width: 80px; height: 80px; margin: 0 auto 16px; border-radius: 50%; border: 2px solid rgba(196,137,106,0.18); background: var(--cream); display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 42px; color: var(--rose); font-style: italic; box-shadow: 0 8px 28px rgba(196,137,106,0.28); }
+  .welcome h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(24px,5vw,30px); font-weight: 400; color: var(--stone); margin-bottom: 10px; }
+  .welcome h2 em { font-style: italic; color: var(--rose); }
+  .welcome p { font-size: 13.5px; color: rgba(44,26,18,0.58); line-height: 1.65; }
+  .welcome-chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-top: 16px; }
+  .welcome-chip { background: white; border: 1px solid rgba(196,137,106,0.2); border-radius: 100px; padding: 7px 15px; font-size: 12px; font-weight: 500; color: var(--stone); cursor: pointer; transition: all 0.2s; }
+  .welcome-chip:hover { background: var(--blush); border-color: var(--rose); }
+  .image-studio { flex: 1; overflow-y: auto; padding: 18px 14px 32px; min-height: 0; }
+  .studio-intro { text-align: center; padding: 4px 0 22px; }
+  .studio-intro h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(22px,5vw,27px); font-weight: 400; color: var(--stone); margin-bottom: 8px; }
+  .studio-intro h2 em { font-style: italic; color: var(--rose); }
+  .studio-intro p { font-size: 13px; color: rgba(44,26,18,0.55); line-height: 1.6; max-width: 480px; margin: 0 auto; }
+  .studio-section { margin-bottom: 26px; }
+  .studio-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rose); margin-bottom: 11px; display: flex; align-items: center; gap: 8px; }
+  .studio-section-label::after { content: ''; flex: 1; height: 1px; background: rgba(196,137,106,0.14); }
+  .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tool-grid.three { grid-template-columns: repeat(3, 1fr); }
+  .tool-card { background: white; border: 1px solid rgba(196,137,106,0.12); border-radius: 14px; padding: 14px 13px; text-decoration: none; display: flex; flex-direction: column; gap: 8px; transition: all 0.25s ease; position: relative; overflow: hidden; }
+  .tool-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px -8px rgba(196,137,106,0.2); }
+  .tool-card-top { display: flex; align-items: center; gap: 9px; }
+  .tool-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.07); color: white; }
+  .tool-name { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 500; color: var(--stone); line-height: 1.1; }
+  .tool-tagline { font-size: 9.5px; color: var(--rose); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .tool-desc { font-size: 11.5px; color: rgba(44,26,18,0.57); line-height: 1.5; }
+  .tool-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tool-tag { background: var(--soft); border-radius: 100px; padding: 2px 8px; font-size: 9.5px; font-weight: 600; color: var(--clay); }
+  .tool-arrow { position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; border-radius: 50%; background: rgba(196,137,106,0.1); display: flex; align-items: center; justify-content: center; color: var(--rose); font-size: 10px; transition: all 0.2s; }
+  .tool-card:hover .tool-arrow { background: var(--rose); color: white; transform: rotate(-45deg); }
+  .prompt-tip-box { background: linear-gradient(135deg, rgba(232,197,176,0.2), rgba(196,137,106,0.09)); border: 1px solid rgba(196,137,106,0.16); border-radius: 14px; padding: 14px 16px; margin-bottom: 24px; }
+  .prompt-tip-box h4 { font-family: 'Cormorant Garamond', serif; font-size: 15px; color: var(--stone); font-weight: 500; margin-bottom: 9px; }
+  .prompt-tip-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .prompt-tip-list li { display: flex; flex-direction: column; }
+  .prompt-tip-list li .tip-label { font-size: 10.5px; color: rgba(44,26,18,0.5); font-weight: 600; margin-bottom: 3px; }
+  .copy-prompt { display: inline-block; background: white; border: 1px solid rgba(196,137,106,0.2); border-radius: 8px; padding: 6px 11px; font-size: 11px; color: var(--stone); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; font-style: italic; line-height: 1.4; }
+  .copy-prompt:hover { background: var(--blush); border-color: var(--rose); }
+  @media (max-width: 600px) {
+    .amara-app header { padding: 8px 12px; gap: 10px; }
+    .avatar-logo { width: 46px; height: 46px; font-size: 26px; }
+    .header-name { font-size: 14px; }
+    .header-sub { font-size: 8.5px; }
+    .social-link { padding: 7px 10px; }
+    .social-link .social-label { display: none; }
+    .tab-btn { padding: 12px 10px; font-size: 10px; }
+    .quick-btn { padding: 5px 11px; font-size: 11px; }
+    .welcome-logo { width: 64px; height: 64px; font-size: 34px; }
+    .tool-grid, .tool-grid.three { grid-template-columns: 1fr; }
+    .tool-desc { display: none; }
+    .tool-card { padding: 12px 11px; flex-direction: row; align-items: center; gap: 11px; }
+    .tool-card-top { flex: 1; }
+    .tool-tags { display: none; }
+    .tool-arrow { position: static; flex-shrink: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="amara-app">
+<header>
+  <div class="avatar-logo">A</div>
+  <div class="header-center">
+    <div class="header-name">Amara AI ✦ Emily's Assistant</div>
+    <div class="header-sub">Amara Aesthetics · Boise, Idaho</div>
+  </div>
+  <div class="header-social">
+    <a href="https://www.instagram.com/amaraaestheticsboise/" target="_blank" class="social-link">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5A6B45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      <span class="social-label">Instagram</span>
+    </a>
+    <a href="https://www.facebook.com/profile.php?id=61577721421305" target="_blank" class="social-link">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="#5A6B45"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+      <span class="social-label">Facebook</span>
+    </a>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-chat" onclick="switchTab('chat')">💬 Caption Writer</button>
+  <button class="tab-btn" id="tab-images" onclick="switchTab('images')">🎨 Image Studio</button>
+  <button class="tab-btn" id="tab-video" onclick="switchTab('video')">🎬 Video Editor</button>
+</div>
+
+<div class="panel active" id="panel-chat">
+  <div class="quick-bar">
+    <button class="quick-btn" onclick="quickPrompt('Write a caption selling my signature Combo Treatment — massage AND facial in one session. Make it sound irresistible.')">🌟 Combo Treatment</button>
+    <button class="quick-btn" onclick="quickPrompt('Write a Monday educational post about why combining massage and esthetics is the ultimate holistic treatment')">📚 Monday Caption</button>
+    <button class="quick-btn" onclick="quickPrompt('Write a Wednesday before & after skin result post')">✨ Before & After</button>
+    <button class="quick-btn" onclick="quickPrompt('Write a Friday post featuring my Combo Treatment availability with a booking CTA')">📅 Friday Post</button>
+    <button class="quick-btn" onclick="quickPrompt('Write a caption about my massage services and how they pair with my facials for a full holistic experience')">💆 Massage Post</button>
+    <button class="quick-btn" onclick="quickPrompt('Write a post: why choose between a massage and a facial when you can have both? Promote my combo treatment.')">💆‍♀️✨ Why Choose?</button>
+    <button class="quick-btn" onclick="quickPrompt('Write a caption for a holistic vs med spa post — mention my combo as something no med spa can offer')">🌿 Holistic vs Med Spa</button>
+    <button class="quick-btn" onclick="quickPrompt('I just did a lash lift and tint — write me a post about it')">👁️ Lash Post</button>
+    <button class="quick-btn" onclick="quickPrompt('Write a short about me caption mentioning I am both a massage therapist and esthetician')">💬 About Me</button>
+  </div>
+  <div class="chat-area" id="chat">
+    <div class="welcome" id="welcome">
+      <div class="welcome-logo">A</div>
+      <h2>Hey Emily, <em>let's make magic.</em></h2>
+      <p>I'm your personal Amara Aesthetics AI — trained in your voice, your brand, and your goals. Ask me to write captions, plan your week, brainstorm content ideas, or craft the perfect CTA.</p>
+      <div class="welcome-chips">
+        <div class="welcome-chip" onclick="quickPrompt('Write a caption selling my signature Combo Treatment — massage AND facial in one session. Make it irresistible.')">Sell my Combo Treatment</div>
+        <div class="welcome-chip" onclick="quickPrompt('Give me a full week of content ideas for Amara Aesthetics that highlights my combo treatment and massage services')">Plan my content week</div>
+        <div class="welcome-chip" onclick="quickPrompt('Write a post: why choose between a massage and a facial when you can have both at Amara Aesthetics?')">Why choose? Post</div>
+        <div class="welcome-chip" onclick="quickPrompt('Write a caption about my 13 years of experience as both a massage therapist and esthetician')">My experience story</div>
+      </div>
+    </div>
+  </div>
+  <div class="input-area">
+    <div class="input-row">
+      <textarea id="user-input" placeholder="Ask me to write a caption, plan your week, find hashtags…" rows="1"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+      </button>
+    </div>
+    <div class="input-hint">Powered by Opteva · hello@opteva.ai</div>
+  </div>
+</div>
+
+<div class="panel" id="panel-images">
+  <div class="image-studio">
+    <div class="studio-intro">
+      <h2>Image Studio <em>for Amara</em></h2>
+      <p>AI generators, free spa photography, and design templates — everything Emily needs to make gorgeous visuals without a photographer.</p>
+    </div>
+    <div class="studio-section">
+      <div class="studio-section-label">✦ AI Image Generators</div>
+      <div class="tool-grid">
+        <a href="https://www.canva.com/ai-image-generator/" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#7B2D8B,#00C4CC);">🎨</div>
+            <div><div class="tool-name">Canva AI</div><div class="tool-tagline">Best all-in-one</div></div>
+          </div>
+          <div class="tool-desc">Generate an image AND design the full post in one place.</div>
+          <div class="tool-tags"><span class="tool-tag">Free tier</span><span class="tool-tag">Templates</span></div>
+        </a>
+        <a href="https://gemini.google.com/app" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#4285F4,#34A853);">✦</div>
+            <div><div class="tool-name">Google Gemini</div><div class="tool-tagline">Photorealistic glow</div></div>
+          </div>
+          <div class="tool-desc">Stunning photorealistic images for dewy skin visuals and spa ambiance.</div>
+          <div class="tool-tags"><span class="tool-tag">Free</span><span class="tool-tag">Photorealistic</span></div>
+        </a>
+        <a href="https://firefly.adobe.com" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#FF6B35,#cc0000);">🔥</div>
+            <div><div class="tool-name">Adobe Firefly</div><div class="tool-tagline">Commercially safe</div></div>
+          </div>
+          <div class="tool-desc">100% safe to post commercially. Premium quality for skincare textures.</div>
+          <div class="tool-tags"><span class="tool-tag">Free credits</span><span class="tool-tag">Commercial</span></div>
+        </a>
+        <a href="https://labs.google/fx/tools/image-fx" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#34A853,#4285F4);">🖼️</div>
+            <div><div class="tool-name">Google ImageFX</div><div class="tool-tagline">Fast & free</div></div>
+          </div>
+          <div class="tool-desc">Powered by Google's Imagen 3 — fast and free.</div>
+          <div class="tool-tags"><span class="tool-tag">100% Free</span><span class="tool-tag">Fast</span></div>
+        </a>
+      </div>
+    </div>
+    <div class="prompt-tip-box">
+      <h4>✦ Amara Prompt Recipes — tap to copy</h4>
+      <ul class="prompt-tip-list">
+        <li><div class="tip-label">Spa ambiance</div><span class="copy-prompt" onclick="copyPrompt(this)">Soft-lit holistic spa room, steamer diffusing mist, jade roller on white linen, warm blush and cream tones, editorial luxury photography, no people</span></li>
+        <li><div class="tip-label">Glowing skin close-up</div><span class="copy-prompt" onclick="copyPrompt(this)">Close-up of radiant dewy skin after a facial, soft natural window light, creamy white background, photorealistic, no filters</span></li>
+        <li><div class="tip-label">Product flatlay</div><span class="copy-prompt" onclick="copyPrompt(this)">Skincare flatlay on white marble, rose quartz roller, green botanical leaves, warm beige tones, top-down view, luxury minimalist</span></li>
+        <li><div class="tip-label">Mask treatment</div><span class="copy-prompt" onclick="copyPrompt(this)">Esthetician applying brightening clay mask on client's face, jade eye mask, warm candlelit spa room, cinematic close-up, ASMR aesthetic</span></li>
+        <li><div class="tip-label">Lash lift result</div><span class="copy-prompt" onclick="copyPrompt(this)">Close-up of beautiful lifted lashes after a lash lift and tint, natural light, no makeup, dewy skin, beauty photography</span></li>
+      </ul>
+    </div>
+    <div class="studio-section">
+      <div class="studio-section-label">📸 Free Photo Libraries</div>
+      <div class="tool-grid three">
+        <a href="https://www.pexels.com/search/spa%20facial%20skincare/" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:#05A081;">P</div>
+            <div><div class="tool-name">Pexels</div><div class="tool-tagline">Best spa library</div></div>
+          </div>
+          <div class="tool-desc">Huge free library for spa & skincare.</div>
+          <div class="tool-tags"><span class="tool-tag">Free</span></div>
+        </a>
+        <a href="https://unsplash.com/s/photos/spa-skincare-holistic" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:#111;">U</div>
+            <div><div class="tool-name">Unsplash</div><div class="tool-tagline">Editorial quality</div></div>
+          </div>
+          <div class="tool-desc">Higher-end editorial photography.</div>
+          <div class="tool-tags"><span class="tool-tag">Free</span></div>
+        </a>
+        <a href="https://www.freepik.com/search#query=holistic+spa+skincare+facial&type=photo" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#FF6B6B,#FFA07A);">✨</div>
+            <div><div class="tool-name">Freepik</div><div class="tool-tagline">Photos + vectors</div></div>
+          </div>
+          <div class="tool-desc">Photos AND botanical illustrations.</div>
+          <div class="tool-tags"><span class="tool-tag">Free tier</span></div>
+        </a>
+      </div>
+    </div>
+    <div class="studio-section">
+      <div class="studio-section-label">🖌️ Design Templates</div>
+      <div class="tool-grid">
+        <a href="https://www.canva.com/templates/?query=spa+skincare+instagram+post" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#7B2D8B,#00C4CC);">🎨</div>
+            <div><div class="tool-name">Canva Templates</div><div class="tool-tagline">IG & FB ready</div></div>
+          </div>
+          <div class="tool-desc">Spa & skincare templates pre-sized for every format.</div>
+          <div class="tool-tags"><span class="tool-tag">Free</span></div>
+        </a>
+        <a href="https://www.adobe.com/express/create/social-media/instagram-post" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#FF6B35,#cc0000);">⚡</div>
+            <div><div class="tool-name">Adobe Express</div><div class="tool-tagline">Quick graphics</div></div>
+          </div>
+          <div class="tool-desc">Add Amara's brand colors and logo to any photo fast.</div>
+          <div class="tool-tags"><span class="tool-tag">Free tier</span></div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="panel-video">
+  <div class="image-studio">
+    <div class="studio-intro">
+      <h2>Video Editor <em>for Amara</em></h2>
+      <p>Create Reels, TikToks, Stories, and YouTube Shorts — tap any card to jump in.</p>
+    </div>
+    <div class="studio-section">
+      <div class="studio-section-label">🎬 Canva Video Tools</div>
+      <div class="tool-grid">
+        <a href="https://www.canva.com/video-editor/" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#7B2D8B,#00C4CC);">🎬</div>
+            <div><div class="tool-name">Canva Video</div><div class="tool-tagline">All-in-one studio</div></div>
+          </div>
+          <div class="tool-desc">Trim clips, add text, music, and transitions. Export for Reels or Stories.</div>
+          <div class="tool-tags"><span class="tool-tag">Free tier</span></div>
+        </a>
+        <a href="https://www.canva.com/create/instagram-reels/" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#E1306C,#833AB4);">📱</div>
+            <div><div class="tool-name">Reels Templates</div><div class="tool-tagline">9:16 vertical</div></div>
+          </div>
+          <div class="tool-desc">Pre-sized Reels templates with spa aesthetics.</div>
+          <div class="tool-tags"><span class="tool-tag">Free</span></div>
+        </a>
+        <a href="https://www.canva.com/create/facebook-video/" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#1877F2,#0a4fa8);">📘</div>
+            <div><div class="tool-name">Facebook Video</div><div class="tool-tagline">Feed + Stories</div></div>
+          </div>
+          <div class="tool-desc">Templates sized for Facebook feed and Stories.</div>
+          <div class="tool-tags"><span class="tool-tag">Free</span></div>
+        </a>
+        <a href="https://www.canva.com/create/youtube-shorts/" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#FF0000,#cc0000);">▶️</div>
+            <div><div class="tool-name">YouTube Shorts</div><div class="tool-tagline">Repurpose Reels</div></div>
+          </div>
+          <div class="tool-desc">Same format as Reels — one edit, post everywhere.</div>
+          <div class="tool-tags"><span class="tool-tag">Free</span></div>
+        </a>
+      </div>
+    </div>
+    <div class="prompt-tip-box">
+      <h4>✦ Reel Ideas for Amara — tap to copy</h4>
+      <ul class="prompt-tip-list">
+        <li><div class="tip-label">Combo Treatment process</div><span class="copy-prompt" onclick="copyPrompt(this)">Film hands transitioning from massage to facial — steam rising, jade roller, mask. Caption: One session. Full body. Total reset. The Amara experience ✨</span></li>
+        <li><div class="tip-label">ASMR steamer moment</div><span class="copy-prompt" onclick="copyPrompt(this)">Close-up of facial steamer hitting skin, soft music. Caption: This is what reset sounds like 🌿</span></li>
+        <li><div class="tip-label">Before & after reveal</div><span class="copy-prompt" onclick="copyPrompt(this)">Side-by-side or swipe reveal. Caption: Real skin. Real results. No filter — just 13 years of knowing what your skin needs. 💛</span></li>
+        <li><div class="tip-label">Day in the life</div><span class="copy-prompt" onclick="copyPrompt(this)">Quick 15-second montage — setup, steamer, mask, lashes. Caption: A Tuesday at Amara ✨</span></li>
+        <li><div class="tip-label">Why I do both</div><span class="copy-prompt" onclick="copyPrompt(this)">Talking head, warm. Caption: Most estheticians only do one. I do both — here is why it changes everything. 🌿</span></li>
+      </ul>
+    </div>
+    <div class="studio-section">
+      <div class="studio-section-label">✦ AI Video Tools</div>
+      <div class="tool-grid">
+        <a href="https://runwayml.com" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#0f0f0f,#333);">🛫</div>
+            <div><div class="tool-name">Runway ML</div><div class="tool-tagline">AI generation</div></div>
+          </div>
+          <div class="tool-desc">Generate short B-roll clips from text descriptions.</div>
+          <div class="tool-tags"><span class="tool-tag">Free credits</span></div>
+        </a>
+        <a href="https://app.heygen.com" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#6C47FF,#4A90D9);">🤖</div>
+            <div><div class="tool-name">HeyGen</div><div class="tool-tagline">AI avatars</div></div>
+          </div>
+          <div class="tool-desc">Create a talking AI avatar of yourself.</div>
+          <div class="tool-tags"><span class="tool-tag">Free trial</span></div>
+        </a>
+        <a href="https://www.capcut.com" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#000,#333);">✂️</div>
+            <div><div class="tool-name">CapCut</div><div class="tool-tagline">Mobile editing</div></div>
+          </div>
+          <div class="tool-desc">Free Reels editor with auto-captions and templates.</div>
+          <div class="tool-tags"><span class="tool-tag">Free</span></div>
+        </a>
+        <a href="https://www.descript.com" target="_blank" class="tool-card">
+          <div class="tool-arrow">→</div>
+          <div class="tool-card-top">
+            <div class="tool-icon" style="background:linear-gradient(135deg,#00B4D8,#0077B6);">📝</div>
+            <div><div class="tool-name">Descript</div><div class="tool-tagline">Edit by text</div></div>
+          </div>
+          <div class="tool-desc">Edit video by editing the transcript. Remove filler words instantly.</div>
+          <div class="tool-tags"><span class="tool-tag">Free tier</span></div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const SYSTEM_PROMPT = "You are Emily's personal AI social media assistant for Amara Aesthetics, a holistic skincare studio in Boise, Idaho. You write in Emily's authentic voice.\n\nEMILY'S BRAND: Owner Emilee Bakko, 13+ years as licensed esthetician AND massage therapist. Holistic skincare, 'Relaxation + Results'. Boise, Idaho. IG: @AmaraAestheticsBoise. Website: amaraaesthetics.net\n\nVOICE: Conversational, warm, like texting a trusted friend. Confident but never braggy. Loves em dashes and line breaks. Emojis: purposeful, 1-3 max. Always ends with soft CTA.\n\nHERO SERVICE - THE COMBO TREATMENT: Massage + facial in one session. Her #1 differentiator. No med spa offers this.\n\nOTHER SERVICES: Holistic Facials, Massage Therapy, Lash Lift & Tint, Brow Tint & Shape, Body treatments.\n\nHASHTAGS: Mix #BoiseIdaho #BoiseSkincare #BoiseEsthetician + #HolisticSkincare #ComboTreatment #AmaraAesthetics\n\nFORMAT CAPTIONS AS:\n[HOOK] - punchy first line\n[CAPTION] - full post text\n[HASHTAGS] - suggested tags\n[NOTES] - filming/posting tips";
+
+let history = [];
+let isLoading = false;
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+function copyPrompt(el) {
+  const text = el.textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = el.textContent;
+    el.textContent = '✓ Copied!';
+    el.style.background = '#E8F5E9';
+    el.style.borderColor = '#4CAF50';
+    setTimeout(() => {
+      el.textContent = orig;
+      el.style.background = '';
+      el.style.borderColor = '';
+    }, 2000);
+  });
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const input = document.getElementById('user-input');
+  if (input) {
+    input.addEventListener('input', function() { autoResize(this); });
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
+});
+
+function quickPrompt(text) {
+  switchTab('chat');
+  document.getElementById('user-input').value = text;
+  autoResize(document.getElementById('user-input'));
+  sendMessage();
+}
+
+function appendMessage(role, html) {
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+  const chat = document.getElementById('chat');
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('msg', role === 'user' ? 'user' : 'ai');
+  const label = document.createElement('div');
+  label.style.cssText = 'display:flex;flex-direction:column;gap:4px;max-width:660px;';
+  const lbl = document.createElement('div');
+  lbl.className = 'msg-label';
+  lbl.textContent = role === 'user' ? 'Emily' : 'Amara AI';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = html;
+  const av = document.createElement('div');
+  av.className = 'msg-avatar';
+  av.textContent = role === 'user' ? 'E' : 'A';
+  label.appendChild(lbl);
+  label.appendChild(bubble);
+  if (role === 'user') {
+    wrapper.appendChild(label);
+    wrapper.appendChild(av);
+  } else {
+    wrapper.appendChild(av);
+    wrapper.appendChild(label);
+  }
+  chat.appendChild(wrapper);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showTyping() {
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+  const chat = document.getElementById('chat');
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('msg', 'ai');
+  wrapper.id = 'typing-indicator';
+  const av = document.createElement('div');
+  av.className = 'msg-avatar';
+  av.textContent = 'A';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble typing-bubble';
+  bubble.innerHTML = '<span></span><span></span><span></span>';
+  wrapper.appendChild(av);
+  wrapper.appendChild(bubble);
+  chat.appendChild(wrapper);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+function formatResponse(text) {
+  return text.split('\n').filter(l => l.trim()).map(l => {
+    let line = l
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\[HOOK\]/g, '<strong style="color:#C4896A;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">🪝 HOOK</strong>')
+      .replace(/\[CAPTION\]/g, '<strong style="color:#C4896A;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">📝 CAPTION</strong>')
+      .replace(/\[HASHTAGS\]/g, '<strong style="color:#C4896A;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">🏷️ HASHTAGS</strong>')
+      .replace(/\[NOTES\]/g, '<strong style="color:#C4896A;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">💡 NOTES</strong>');
+    if ((l.match(/#\w+/g) || []).length >= 3) {
+      return '<div class="hashtag-block">' + line + '</div>';
+    }
+    return '<p>' + line + '</p>';
+  }).join('');
+}
+
+async function sendMessage() {
+  if (isLoading) return;
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+  isLoading = true;
+  appendMessage('user', '<p>' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>');
+  history.push({ role: 'user', content: text });
+  showTyping();
+  try {
+    const response = await fetch('https://amara-ai-proxy.aged-bread-c820.workers.dev/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: history
+      })
+    });
+    const data = await response.json();
+    const aiText = data.content && data.content[0] ? data.content[0].text : 'Something went wrong — try again!';
+    removeTyping();
+    history.push({ role: 'assistant', content: aiText });
+    appendMessage('ai', formatResponse(aiText));
+  } catch (err) {
+    removeTyping();
+    appendMessage('ai', '<p>Oops! Connection issue — please try again. 💕</p>');
+    history.pop();
+  } finally {
+    isLoading = false;
+    document.getElementById('send-btn').disabled = false;
+    document.getElementById('user-input').focus();
+  }
+}
+</script>
+</body>
+</html>
